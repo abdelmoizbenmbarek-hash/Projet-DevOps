@@ -1,0 +1,9 @@
+FROM postgres:16-alpine
+
+ENV POSTGRES_DB=projetdevops
+
+ENV POSTGRES_USER=abdelmoaiz
+
+ENV POSTGRES_PASSWORD=ensi
+
+EXPOSE 5432
