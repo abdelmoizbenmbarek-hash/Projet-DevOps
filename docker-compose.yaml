@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+
+  # ─── DATABASE ───────────────────────────────────────────────
+  database:
+    build:
+      context: ./DataBase
+    container_name: projetdevops_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: projetdevops
+      POSTGRES_USER: abdelmoaiz
+      POSTGRES_PASSWORD: ensi
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - projetdevops_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abdelmoaiz -d projetdevops"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── BACKEND ────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+    container_name: projetdevops_backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: projetdevops
+      DB_USER: abdelmoaiz
+      DB_PASSWORD: ensi
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - projetdevops_network
+
+  # ─── FRONTEND ───────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+    container_name: projetdevops_frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+    networks:
+      - projetdevops_network
+
+# ─── VOLUMES ──────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+
+# ─── NETWORKS ─────────────────────────────────────────────────
+networks:
+  projetdevops_network:
+    driver: bridge
